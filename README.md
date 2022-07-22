@@ -6,6 +6,6 @@ Code repository for [Self-Supervised Learning of Echocardiogram Videos Enables D
 
 <!-- ![](figs/fusion_architectures_all_v11.png) -->
 <p align=center>
-    <img src=figs/echo_avs_fig1_v3_imlh.pdf height=600>
+    <img src=figs/echo_avs_fig1_v3_imlh.png height=400>
 </p>
 
