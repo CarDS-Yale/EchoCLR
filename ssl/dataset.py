@@ -9,13 +9,16 @@ import torch
 import tqdm
 
 class EchoDataset(torch.utils.data.Dataset):
-    def __init__(self, data_dir, split, clip_len=16, sampling_rate=1, frame_reordering=False, n=None):
+    def __init__(self, data_dir, split, clip_len=16, sampling_rate=1, multi_instance=False, frame_reordering=False, n=None):
         assert split in ['train', 'val', 'test', 'ext_test'], "split must be one of ['train', 'val', 'test', 'ext_test']"
 
         self.split = split
         self.clip_len = clip_len
         self.sampling_rate = sampling_rate
+        self.multi_instance = multi_instance
         self.frame_reordering = frame_reordering
+
+        assert not ((not multi_instance) and frame_reordering), "frame_reordering can only be enabled when multi_instance is enabled"
 
         self.video_dir = os.path.join(data_dir, 'videos')
         self.label_df = pd.read_csv(os.path.join(data_dir, self.split + '.csv'))
@@ -25,20 +28,22 @@ class EchoDataset(torch.utils.data.Dataset):
 
         self.study_ids = np.sort(self.label_df['acc_num'].unique())
 
-        self.fnames_i = []
-        self.fnames_j = []
-        for study_id in tqdm.tqdm(self.study_ids):
-            fnames = self.label_df[self.label_df['acc_num'] == study_id]['fpath'].values.tolist()
+        if self.multi_instance:
+            self.fnames_i = []
+            self.fnames_j = []
+            for study_id in tqdm.tqdm(self.study_ids):
+                fnames = self.label_df[self.label_df['acc_num'] == study_id]['fpath'].values.tolist()
 
-            if len(fnames) == 1:
-                self.fnames_i.append(fnames[0])
-                self.fnames_j.append(fnames[0])
-            else:
-                for fname_pair in itertools.combinations(fnames, 2):
-                    self.fnames_i.append(fname_pair[0])
-                    self.fnames_j.append(fname_pair[1])
+                if len(fnames) == 1:
+                    self.fnames_i.append(fnames[0])
+                    self.fnames_j.append(fnames[0])
+                else:
+                    for fname_pair in itertools.combinations(fnames, 2):
+                        self.fnames_i.append(fname_pair[0])
+                        self.fnames_j.append(fname_pair[1])
 
-        self.temporal_orderings = [_ for _ in itertools.permutations(np.arange(self.clip_len))]
+            if self.frame_reordering:
+                self.temporal_orderings = [_ for _ in itertools.permutations(np.arange(self.clip_len))]
 
     def _sample_frames(self, x):
         if x.shape[0] > self.clip_len*self.sampling_rate:
@@ -80,25 +85,37 @@ class EchoDataset(torch.utils.data.Dataset):
             return x
 
     def __len__(self):
-        return len(self.fnames_i)
+        if self.multi_instance:
+            return len(self.fnames_i)
+        else:
+            return self.label_df.shape[0]
 
     def __getitem__(self, idx):
-        x_i = load_video(os.path.join(self.video_dir, self.fnames_i[idx]))
-        x_j = load_video(os.path.join(self.video_dir, self.fnames_j[idx]))
+        if self.multi_instance:
+            x_i = load_video(os.path.join(self.video_dir, self.fnames_i[idx]))
+            x_j = load_video(os.path.join(self.video_dir, self.fnames_j[idx]))
 
-        # Sample frames to form clip from each "view"
-        x_i = self._sample_frames(x_i)
-        x_j = self._sample_frames(x_j)
+            # Sample frames to form clip from each "view"
+            x_i = self._sample_frames(x_i)
+            x_j = self._sample_frames(x_j)
 
-        # Augment each view and obtain frame ordering label
-        if self.frame_reordering:
-            x_i, reordering_i = self._augment(x_i)
-            x_j, reordering_j = self._augment(x_j)
-            reordering_i = np.array(reordering_i)
-            reordering_j = np.array(reordering_j)
+            # Augment each view and obtain frame ordering label
+            if self.frame_reordering:
+                x_i, reordering_i = self._augment(x_i)
+                x_j, reordering_j = self._augment(x_j)
+                reordering_i = np.array(reordering_i)
+                reordering_j = np.array(reordering_j)
+            else:
+                x_i = self._augment(x_i)
+                x_j = self._augment(x_j)
         else:
-            x_i = self._augment(x_i)
-            x_j = self._augment(x_j)
+            plax_prob, fname, acc_num, label, video_num = self.label_df.iloc[idx, :]
+            x = load_video(os.path.join(self.video_dir, fname))
+
+            x = self._sample_frames(x)
+
+            x_i = self._augment(x)
+            x_j = self._augment(x)
 
         # Min-max normalize and swap axes for PyTorch
         x_i = (x_i - x_i.min()) / (x_i.max() - x_i.min())

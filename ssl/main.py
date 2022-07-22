@@ -92,8 +92,10 @@ if __name__ == '__main__':
     parser.add_argument('--out_dir', type=str, required=True)
     parser.add_argument('--model_name', type=str, required=True)
     
+    parser.add_argument('--multi_instance', action='store_true', default=False)
     parser.add_argument('--frame_reordering', action='store_true', default=False)
 
+    parser.add_argument('--n_gpu', type=int, default=2)
     parser.add_argument('--batch_size', type=int, default=196)
     parser.add_argument('--temperature', type=float, default=0.05)
     parser.add_argument('--projection_dim', type=int, default=128)
