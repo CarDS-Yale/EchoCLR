@@ -1,3 +1,5 @@
+import torch
+
 class NT_Xent(torch.nn.Module):
     # Adapted from https://github.com/Spijkervet/SimCLR/blob/master/simclr/modules/nt_xent.py
     def __init__(self, batch_size, temperature, world_size=1):
