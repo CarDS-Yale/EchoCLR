@@ -25,7 +25,7 @@ python main.py \
     --temperature 0.05 \
     --projection_dim 128 \
     --lr 0.1 \
-    --num_epochs 520 \
+    --num_epochs 300 \
     --clip_len 4 \
     --sampling_rate 1
 
@@ -41,6 +41,6 @@ python main.py \
     --temperature 0.05 \
     --projection_dim 128 \
     --lr 0.1 \
-    --num_epochs 520 \
+    --num_epochs 300 \
     --clip_len 4 \
     --sampling_rate 1
