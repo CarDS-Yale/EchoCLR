@@ -11,7 +11,7 @@ from scipy.ndimage import rotate
 from utils import load_video
 
 class EchoDataset(torch.utils.data.Dataset):
-    def __init__(self, data_dir, split, clip_len=16, sampling_rate=1, num_clips=4, augment=False, frac=1.0, kinetics=False, N_TTA=0):
+    def __init__(self, data_dir, split, clip_len=16, sampling_rate=1, num_clips=4, augment=False, frac=1.0, kinetics=False, n_TTA=0):
         assert split in ['train', 'val', 'test', 'ext_test'], "split must be one of ['train', 'val', 'test', 'ext_test']"
 
         self.split = split
