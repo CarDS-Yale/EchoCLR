@@ -19,13 +19,13 @@ To reproduce the results in the paper,
 - `conda env create -f echo.yml`
 - `conda activate echo`
 2. Run pretraining experiments. This will train the SimCLR, MI-SimCLR, and MI-SimCLR+FO models.
-- `bash run_ssl_experiments.sh`
+- `bash ssl/run_ssl_experiments.sh`
 3. Run fine-tuning experiments. For each init (random, Kinetics-400, SimCLR, MI-SimCLR, and MI-SimCLR+FO), this will fine-tune a model to predict severe AS on various ratios of the training set.
-- `bash run_random_train_ratio_experiments.sh`
-- `bash run_kinetics_train_ratio_experiments.sh`
-- `bash run_simclr_train_ratio_experiments.sh`
-- `bash run_mi-simclr_train_ratio_experiments.sh`
-- `bash run_mi-simclr-fo_train_ratio_experiments.sh`
+- `bash finetune_AS/run_random_train_ratio_experiments.sh`
+- `bash finetune_AS/run_kinetics_train_ratio_experiments.sh`
+- `bash finetune_AS/run_simclr_train_ratio_experiments.sh`
+- `bash finetune_AS/run_mi-simclr_train_ratio_experiments.sh`
+- `bash finetune_AS/run_mi-simclr-fo_train_ratio_experiments.sh`
 
 ## Contact
 

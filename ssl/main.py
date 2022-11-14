@@ -1,14 +1,16 @@
 import os
 import shutil
 
+import argparse
 import pandas as pd
 import torch
 import torchvision
+import tqdm
 
 from dataset import EchoDataset
 from losses import NT_Xent
 from model import SimCLR
-
+from utils import seed_worker, set_seed
 
 def main(args):
     # Create output directory and clean out if already exists
@@ -105,4 +107,8 @@ if __name__ == '__main__':
     parser.add_argument('--sampling_rate', type=int, default=1)
 
     parser.add_argument('--save_freq', type=int, default=20)
-    
+    args = parser.parse_args()
+
+    print(args)
+
+    main(args)
