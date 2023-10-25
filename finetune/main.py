@@ -1,21 +1,24 @@
-import tqdm
-import torchvision
-from sklearn.metrics import balanced_accuracy_score, roc_auc_score, matthews_corrcoef, confusion_matrix
-from sklearn.utils import compute_class_weight
-import random
-import torch
 import os
-import pandas as pd
-import numpy as np
-import cv2
-import argparse
+import random
 import shutil
 
-from utils import train, train_kd, validate, evaluate, seed_worker, set_seed
+import argparse
+import cv2
+import numpy as np
+import pandas as pd
+import torch
+import torchvision
+import tqdm
+
+from sklearn.metrics import balanced_accuracy_score, roc_auc_score, matthews_corrcoef, confusion_matrix
+from sklearn.utils import compute_class_weight
+
+from utils import train, validate, evaluate, seed_worker, set_seed
 from dataset import EchoDataset
 
 def main(args):
     MODEL_NAME = args.model_name
+    MODEL_NAME += f'_{args.label.upper()}'
     MODEL_NAME += f'_frac-{args.frac}' if args.frac != 1.0 else ''
     MODEL_NAME += '_pretr' if not args.rand_init else '_rand'
     MODEL_NAME += f'_ssl-{args.ssl.split("/")[-1]}' if args.ssl != '' else ''
@@ -123,12 +126,8 @@ def main(args):
         early_stopping_dict = {'best_loss': 1e8, 'epochs_no_improve': 0}
         best_model_wts = None
         while epoch <= args.max_epochs and early_stopping_dict['epochs_no_improve'] <= args.patience:
-            if args.kd != '':
-                history = train_kd(student=student, teacher=teacher, device=device, cls_loss_fxn=loss_fxn, kd_loss_fxn=kd_loss_fxn, optimizer=optimizer, data_loader=train_loader, history=history, epoch=epoch, model_dir=model_dir, plax_weight=args.plax_weight, plax_weight_agg=args.plax_weight_agg)
-                history, early_stopping_dict, best_model_wts = validate(model=student, device=device, loss_fxn=eval_loss_fxn, optimizer=optimizer, data_loader=val_loader, history=history, epoch=epoch, model_dir=model_dir, early_stopping_dict=early_stopping_dict, best_model_wts=best_model_wts, plax_weight=args.plax_weight, plax_weight_agg=args.plax_weight_agg)
-            else:
-                history = train(model=model, device=device, loss_fxn=loss_fxn, optimizer=optimizer, data_loader=train_loader, history=history, epoch=epoch, model_dir=model_dir, plax_weight=args.plax_weight, plax_weight_agg=args.plax_weight_agg)
-                history, early_stopping_dict, best_model_wts = validate(model=model, device=device, loss_fxn=eval_loss_fxn, optimizer=optimizer, data_loader=val_loader, history=history, epoch=epoch, model_dir=model_dir, early_stopping_dict=early_stopping_dict, best_model_wts=best_model_wts, plax_weight=args.plax_weight, plax_weight_agg=args.plax_weight_agg)
+            history = train(model=model, device=device, loss_fxn=loss_fxn, optimizer=optimizer, data_loader=train_loader, history=history, epoch=epoch, model_dir=model_dir)
+            history, early_stopping_dict, best_model_wts = validate(model=model, device=device, loss_fxn=eval_loss_fxn, optimizer=optimizer, data_loader=val_loader, history=history, epoch=epoch, model_dir=model_dir, early_stopping_dict=early_stopping_dict, best_model_wts=best_model_wts)
 
             epoch += 1
         
@@ -143,16 +142,16 @@ def main(args):
         best_model_wts = torch.load(os.path.join(args.eval_only, checkpoints[idx]), map_location='cpu')['weights']
 
     # Evaluate on test set
-    evaluate(model=model, device=device, loss_fxn=eval_loss_fxn, data_loader=test_loader, split='test', classes=test_dataset.CLASSES, history=history, model_dir=model_dir, weights=best_model_wts, plax_weight=args.plax_weight, plax_weight_agg=args.plax_weight_agg, n_TTA=args.n_TTA)
+    evaluate(model=model, device=device, loss_fxn=eval_loss_fxn, data_loader=test_loader, split='test', classes=test_dataset.CLASSES, history=history, model_dir=model_dir, weights=best_model_wts)
 
     # Evaluate on external test set
-    evaluate(model=model, device=device, loss_fxn=eval_loss_fxn, data_loader=ext_test_loader, split='ext_test', classes=ext_test_dataset.CLASSES, history=history, model_dir=model_dir, weights=best_model_wts, plax_weight=args.plax_weight, plax_weight_agg=args.plax_weight_agg, n_TTA=args.n_TTA)
+    evaluate(model=model, device=device, loss_fxn=eval_loss_fxn, data_loader=ext_test_loader, split='ext_test', classes=ext_test_dataset.CLASSES, history=history, model_dir=model_dir, weights=best_model_wts)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, default='/home/gih5/mounts/nfs_echo_yale/031522_echo_avs_preprocessed')
-    parser.add_argument('--output_dir', type=str, default='/home/gih5/echo_avs/binary_results_v3')
+    parser.add_argument('--output_dir', type=str, default='finetune_results')
     parser.add_argument('--clip_len', type=int, default=16)
     parser.add_argument('--sampling_rate', type=int, default=1)
     parser.add_argument('--num_clips', type=int, default=4)
@@ -172,6 +171,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--ssl', type=str, default='')
     parser.add_argument('--frac', type=float, default=1.0)
+    parser.add_argument('--label', type=str, default='as', choices=['as', 'lvh'])
 
     parser.add_argument('--weight_averaging', action='store_true', default=False)
     parser.add_argument('--n_TTA', type=int, default=0)

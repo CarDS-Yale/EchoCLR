@@ -1,16 +1,20 @@
-# Self-Supervised Learning of Echocardiogram Videos Enables Data-Efficient Diagnosis of Severe Aortic Stenosis
+# Self-supervised contrastive learning of echocardiogram videos enables label-efficient cardiac disease diagnosis
 
-Code repository for [Self-Supervised Learning of Echocardiogram Videos Enables Data-Efficient Diagnosis of Severe Aortic Stenosis](https://github.com/interpretable-ml-in-healthcare/IMLH2022/blob/main/63%5CCameraReady%5CEcho_AS_IMLH_2022_Camera_Ready.pdf), presented at [IMLH 2022](https://sites.google.com/view/imlh2022/home?authuser=0), an ICML workshop.
+[**Gregory Holste**](https://gholste.me), Evangelos K. Oikonomou, Bobak J. Mortazavi, Zhangyang Wang, [**Rohan Khera**](https://www.cards-lab.org/team)
+
+### [***arXiv preprint***](https://arxiv.org/abs/2207.11581) | 10 September 2023
+
+(For a previous version of this paper presented at the ICML workshop, [IMLH 2022](https://sites.google.com/view/imlh2022/home?authuser=0), see the `imlh-2022/` directory.)
 
 -----
 
 ## Description
 
 <p align=center>
-    <img src=figs/echo_avs_fig1_v3_imlh.png height=400>
+    <img src=figs/overview_fig_v4.png height=500>
 </p>
 
-Since acquiring high-quality labels for automated clinical diagnosis tasks is expensive, there is a need for *data-efficient* learning algorithms for automated diagnosis. We present a data-efficient approach for self-supervised learning (SSL) of echocardiogram videos, evaluating the quality of learned representations on the downstream task of severe aortic stenosis (AS) prediction. SSL is challenging for echocardiograms because (i) ultrasound images are very noisy and brittle to augmentation and (ii) most algorithms ignore the rich temporal content in echo videos. We tackle these challenges by (i) choosing *different* echo videos from the *same* patient as "positive pairs" for contrastive learning, and (ii) using an additional frame re-ordering pretext task, where we permute the frames of each video and train the network to predict the original order.
+**Overview of EchoCLR, a self-supervised learning approach for echocardiography.** Unlike standard contrastive learning methods, two distinct videos of each patient acquired during a single exam are randomly sampled and deemed positive pairs for “multi-instance” contrastive learning (A). The frames of each video are then randomly shuffled along the temporal axis and fed into a 3D CNN, which learns similar representations of distinct videos from the same patient and dissimilar representations of videos from different patients (B). These video-level representations are then used to directly predict the order of shuffled video frames. This frame reordering pretext task encourages temporal coherence, which we demonstrate to be beneficial for downstream echocardiogram video-based disease classification tasks (C). After self-supervised pretraining, the 3D CNN backbone can then be efficiently fine-tuned for cardiac disease classification based on very few labeled echocardiograms.
 
 ## Usage
 
@@ -18,14 +22,27 @@ To reproduce the results in the paper,
 1. Prepare the conda environment.
 - `conda env create -f echo.yml`
 - `conda activate echo`
-2. Run pretraining experiments. This will train the SimCLR, MI-SimCLR, and MI-SimCLR+FO models.
+2. Run pretraining experiments. This will train the SimCLR, MI-SimCLR, and EchoCLR models.
 - `bash ssl/run_ssl_experiments.sh`
-3. Run fine-tuning experiments. For each init (random, Kinetics-400, SimCLR, MI-SimCLR, and MI-SimCLR+FO), this will fine-tune a model to predict severe AS on various ratios of the training set.
+3. Run fine-tuning experiments. For each init (Random, Kinetics-400, SimCLR, MI-SimCLR, and EchoCLR), this will fine-tune a model to predict severe aortic stenosis (AS) and left ventricular hypertrophy (LVH) on various ratios of the training data.
 - `bash finetune_AS/run_random_train_ratio_experiments.sh`
 - `bash finetune_AS/run_kinetics_train_ratio_experiments.sh`
 - `bash finetune_AS/run_simclr_train_ratio_experiments.sh`
 - `bash finetune_AS/run_mi-simclr_train_ratio_experiments.sh`
 - `bash finetune_AS/run_mi-simclr-fo_train_ratio_experiments.sh`
+
+## Citation
+
+```
+@misc{holste2023selfsupervised,
+      title={Self-supervised contrastive learning of echocardiogram videos enables label-efficient cardiac disease diagnosis}, 
+      author={Gregory Holste and Evangelos K. Oikonomou and Bobak J. Mortazavi and Zhangyang Wang and Rohan Khera},
+      year={2023},
+      eprint={2207.11581},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
 
 ## Contact
 
