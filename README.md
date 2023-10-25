@@ -25,11 +25,11 @@ To reproduce the results in the paper,
 2. Run pretraining experiments. This will train the SimCLR, MI-SimCLR, and EchoCLR models.
 - `bash ssl/run_ssl_experiments.sh`
 3. Run fine-tuning experiments. For each init (Random, Kinetics-400, SimCLR, MI-SimCLR, and EchoCLR), this will fine-tune a model to predict severe aortic stenosis (AS) and left ventricular hypertrophy (LVH) on various ratios of the training data.
-- `bash finetune_AS/run_random_train_ratio_experiments.sh`
-- `bash finetune_AS/run_kinetics_train_ratio_experiments.sh`
-- `bash finetune_AS/run_simclr_train_ratio_experiments.sh`
-- `bash finetune_AS/run_mi-simclr_train_ratio_experiments.sh`
-- `bash finetune_AS/run_mi-simclr-fo_train_ratio_experiments.sh`
+- `bash finetune/run_random_train_ratio_experiments.sh`
+- `bash finetune/run_kinetics_train_ratio_experiments.sh`
+- `bash finetune/run_simclr_train_ratio_experiments.sh`
+- `bash finetune/run_mi-simclr_train_ratio_experiments.sh`
+- `bash finetune/run_mi-simclr-fo_train_ratio_experiments.sh`
 
 ## Citation
 
