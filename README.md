@@ -29,7 +29,7 @@ To reproduce the results in the paper,
 - `bash finetune/run_kinetics_train_ratio_experiments.sh`
 - `bash finetune/run_simclr_train_ratio_experiments.sh`
 - `bash finetune/run_mi-simclr_train_ratio_experiments.sh`
-- `bash finetune/run_mi-simclr-fo_train_ratio_experiments.sh`
+- `bash finetune/run_echoclr_train_ratio_experiments.sh`
 
 ## Citation
 
